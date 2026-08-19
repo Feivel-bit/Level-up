@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b14"><title>LEVEL UP V4</title><link rel="manifest" href="manifest.json">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#070b14;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;padding:15px 17px;background:#070b14ee;backdrop-filter:blur(16px);border-bottom:1px solid #223149}
+.top{display:flex;justify-content:space-between;align-items:center}.logo{font-weight:950;letter-spacing:2px;font-size:21px}.version{font-size:11px;color:#67e8f9;font-weight:900;border:1px solid #31506a;border-radius:999px;padding:5px 8px}.tag{font-size:10px;color:#6ee7b7;letter-spacing:1.4px;margin-top:3px}
+main{max-width:760px;margin:auto;padding:12px 15px 100px}.card{background:#0e1624;border:1px solid #223149;border-radius:22px;padding:17px;margin:12px 0;box-shadow:0 15px 40px #0005}.hero{background:linear-gradient(145deg,#12291f,#0d1726)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}.muted,.tiny{color:#8fa1b8}.tiny{font-size:12px}.level{font-size:52px;font-weight:950;line-height:.9}.rank{color:#86efac;font-weight:800;letter-spacing:1px}
+.bar{height:13px;background:#182438;border-radius:99px;overflow:hidden;margin:13px 0 7px}.fill{height:100%;background:linear-gradient(90deg,#34d399,#67e8f9);transition:.4s}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat,.badge{background:#0a111d;border:1px solid #1d2a3d;border-radius:17px;padding:14px}.num{font-size:25px;font-weight:900}
+button{border:0;border-radius:14px;padding:11px 14px;background:#182337;color:#fff;font-weight:800;font-size:14px}button.primary{background:#34d399;color:#03251d}button.blue{background:#38bdf8;color:#062236}button.purple{background:#8b5cf6;color:#fff}button.done{background:#064e3b;color:#9ff4d3}
+.sectiontitle{font-size:20px;margin:8px 0}.quest{padding:12px 0;border-bottom:1px solid #1e2b3e}.quest:last-child{border:0}.qline{display:flex;justify-content:space-between;align-items:center;gap:10px}.qname{font-weight:800}.reward{font-size:12px;color:#7f91a8;margin-top:3px}.pill{display:inline-block;background:#16283a;color:#93c5fd;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}
+.skill{padding:12px 0;border-bottom:1px solid #1e2b3e}.skill:last-child{border:0}.skillbar{height:8px;background:#182438;border-radius:99px;overflow:hidden;margin-top:7px}.skillfill{height:100%;background:#67e8f9}
+.photo{border:1px dashed #3b5875;background:#0a111d;border-radius:17px;padding:20px;text-align:center;display:block}.photo input{display:none}.result{margin-top:12px;background:#101d2e;border:1px solid #29425e;border-radius:17px;padding:14px}
+input,select{width:100%;padding:12px;margin:5px 0;border-radius:12px;border:1px solid #33445c;background:#09111d;color:#fff;font-size:16px}
+.exercise{display:grid;grid-template-columns:1.2fr .6fr .6fr auto;gap:7px;align-items:center;margin:8px 0}.exercise input{margin:0}.mini{padding:8px 10px;font-size:12px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:9;background:#080e18ed;backdrop-filter:blur(16px);border-top:1px solid #223149;display:flex;justify-content:center}nav button{background:transparent;border-radius:0;flex:1;max-width:145px;padding:11px 3px 15px;color:#71829a;font-size:12px}nav button.active{color:#6ee7b7}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:20;background:#34d399;color:#04251c;padding:13px 20px;border-radius:999px;font-weight:950;box-shadow:0 10px 35px #0008}.hidden{display:none}
+.modal{position:fixed;inset:0;background:#0009;z-index:15;display:grid;place-items:center;padding:20px}.modalbox{max-width:500px;width:100%;background:#0e1624;border:1px solid #30415a;border-radius:24px;padding:22px;text-align:center}
+</style></head><body>
+<header><div class="top"><div class="logo">⚡ LEVEL UP</div><div class="version">V4.0</div></div><div class="tag">SOCCER • FUEL • TRAIN • GROW</div></header>
+<main id="app"></main>
+<nav><button id="n-home" onclick="go('home')">🏠<br>TODAY</button><button id="n-train" onclick="go('train')">⚽<br>TRAIN</button><button id="n-fuel" onclick="go('fuel')">🍽️<br>FUEL</button><button id="n-stats" onclick="go('stats')">🏆<br>PROFILE</button></nav>
+<div id="toast" class="toast hidden"></div><div id="levelup" class="modal hidden"><div class="modalbox"><div style="font-size:58px">🆙</div><h1>LEVEL UP!</h1><p id="levelmsg"></p><button class="primary" onclick="closeLevel()">LET'S GO ⚡</button></div></div>
+<script>
+const KEY="levelup-v4";
+let s=JSON.parse(localStorage.getItem(KEY)||"null")||{xp:0,streak:0,water:0,goal:8,done:{},skills:{control:1,dribble:1,weak:1,passing:1,speed:1,shooting:1},soccer:0,workouts:0,foods:[],history:[],week:{},today:new Date().toDateString()};
+const Q=[["morning","🌅","Morning water",50],["breakfast","🍳","Breakfast",100],["lunch","🥪","Lunch",100],["dinner","🍝","Dinner",100],["snack1","🍎","Snack #1",50],["snack2","🍌","Snack #2",50],["water","💧","Water goal",100],["shower","🚿","Shower routine",75]];
+function save(){localStorage.setItem(KEY,JSON.stringify(s))}
+function level(){return Math.floor(s.xp/1000)+1}
+function toast(x){let e=document.getElementById("toast");e.textContent=x;e.classList.remove("hidden");setTimeout(()=>e.classList.add("hidden"),1400)}
+function xp(id,n){if(s.done[id])return;let old=level();s.done[id]=1;s.xp+=n;save();render();if(level()>old){document.getElementById("levelmsg").textContent="You reached Level "+level()+"!";document.getElementById("levelup").classList.remove("hidden")}else toast("+"+n+" XP")}
+function closeLevel(){document.getElementById("levelup").classList.add("hidden")}
+function go(p){localStorage.setItem("page",p);render()}
+function mission(q){let d=s.done[q[0]];return `<div class="quest"><div class="qline"><div><div class="qname">${q[1]} ${q[2]}</div><div class="reward">+${q[3]} XP</div></div><button class="${d?"done":""}" onclick="xp('${q[0]}',${q[3]})">${d?"✓ DONE":"CLAIM"}</button></div></div>`}
+function home(){
+ let completed=Object.keys(s.done).length, pct=Math.min(100,(s.xp%1000)/10);
+ return `<div class="card hero"><div class="row"><div><div class="rank">PLAYER • LEVEL ${level()}</div><div class="level">${level()}</div></div><div style="text-align:right"><span class="pill">🔥 ${s.streak} DAY STREAK</span><div style="margin-top:8px;font-weight:900">${s.xp.toLocaleString()} XP</div></div></div><div class="bar"><div class="fill" style="width:${pct}%"></div></div><div class="row tiny"><span>${s.xp%1000} / 1000 XP</span><span>Next level</span></div></div>
+ <div class="grid"><div class="stat">🎯<div class="num">${completed}</div><span class="muted">Completed</span></div><div class="stat">💧<div class="num">${s.water}/${s.goal}</div><span class="muted">Water</span></div></div>
+ <div class="card"><div class="row"><h2 class="sectiontitle">🔥 TODAY'S RUN</h2><span class="pill">${new Date().toLocaleDateString()}</span></div>${Q.map(mission).join("")}<div class="quest"><div class="qline"><div><div class="qname">⚽ Soccer session</div><div class="reward">+200 XP</div></div><button class="${s.done.soccer?"done":""}" onclick="xp('soccer',200);s.soccer++;save()">${s.done.soccer?"✓ DONE":"CLAIM"}</button></div></div><div class="quest"><div class="qline"><div><div class="qname">🏋️ Workout</div><div class="reward">+200 XP</div></div><button class="${s.done.workout?"done":""}" onclick="xp('workout',200);s.workouts++;save()">${s.done.workout?"✓ DONE":"CLAIM"}</button></div></div></div>
+ <div class="card"><h2 class="sectiontitle">⚡ DAILY CHALLENGE</h2><p class="muted">100 touches with your weaker foot.</p><button class="blue" onclick="challenge()">COMPLETE +150 XP</button></div>`;
+}
+function challenge(){if(s.done.challenge)return toast("Already complete!");xp("challenge",150)}
+function train(){
+ let a=[["control","🎯","Ball Control"],["dribble","⚡","Dribbling"],["weak","👟","Weak Foot"],["passing","🤝","Passing"],["speed","🏃","Speed & Agility"],["shooting","🥅","Shooting"]];
+ return `<div class="card hero"><div class="rank">⚽ TRAINING ARC</div><h2>Build your player.</h2><p class="muted">Complete drills to grow your skill tree.</p><button class="primary" onclick="xp('soccer',200);s.soccer++;save()">COMPLETE SOCCER SESSION +200 XP</button></div>
+ <div class="card"><h2 class="sectiontitle">🌳 SKILL TREE</h2>${a.map(x=>`<div class="skill"><div class="row"><b>${x[1]} ${x[2]}</b><span class="pill">LV ${s.skills[x[0]]}</span></div><div class="skillbar"><div class="skillfill" style="width:${Math.min(100,s.skills[x[0]]*10)}%"></div></div><br><button class="mini" onclick="skill('${x[0]}')">TRAIN +25 XP</button></div>`).join("")}</div>
+ <div class="card"><h2 class="sectiontitle">🏋️ WORKOUT BUILDER</h2><input id="wname" placeholder="Workout name"><div id="ex"></div><button onclick="addEx()">+ ADD EXERCISE</button><br><br><button class="primary" onclick="saveWorkout()">FINISH WORKOUT +200 XP</button></div>`;
+}
+function skill(k){s.skills[k]++;s.xp+=25;save();toast("+25 XP • Skill improved");render()}
+function addEx(){let e=document.getElementById("ex");e.insertAdjacentHTML("beforeend",`<div class="exercise"><input placeholder="Exercise"><input type="number" placeholder="Sets"><input type="number" placeholder="Reps"><button class="mini" onclick="this.parentElement.remove()">×</button></div>`)}
+function saveWorkout(){if(s.done.workout)return toast("Workout already logged today");s.done.workout=1;s.workouts++;s.xp+=200;save();toast("+200 XP • Workout complete");render()}
+function addFood(){let n=document.getElementById("fn").value||"Food",c=+document.getElementById("fc").value||0,p=+document.getElementById("fp").value||0,a=+document.getElementById("fa").value||0,f=+document.getElementById("ff").value||0;s.foods.push({n,c,p,a,f,date:new Date().toLocaleDateString()});s.xp+=25;save();toast("+25 XP • Food logged");render()}
+function photo(input){if(!input.files[0])return;document.getElementById("scan").innerHTML=`<div class="result"><b>📸 Photo ready</b><p class="tiny">The camera interface is ready. Real photo-to-nutrition AI needs a vision API connection; this build never invents nutrition numbers.</p><button class="purple" onclick="reviewScan()">🤖 REVIEW AI ESTIMATE</button></div>`}
+function reviewScan(){document.getElementById("scan").innerHTML=`<div class="result"><b>🤖 AI ESTIMATE REVIEW</b><p class="tiny">Enter/review the estimate before saving.</p><input id="sn" placeholder="Food name"><input id="sc" type="number" placeholder="Calories"><input id="sp" type="number" placeholder="Protein (g)"><input id="sa" type="number" placeholder="Carbs (g)"><input id="sf" type="number" placeholder="Fat (g)"><button class="primary" onclick="saveScan()">SAVE +25 XP</button></div>`}
+function saveScan(){s.foods.push({n:sn.value||"Scanned food",c:+sc.value||0,p:+sp.value||0,a:+sa.value||0,f:+sf.value||0,date:new Date().toLocaleDateString()});s.xp+=25;save();toast("+25 XP • Scan saved");render()}
+function fuel(){
+ let meals=Q.filter(q=>["breakfast","lunch","dinner","snack1","snack2"].includes(q[0])),cal=s.foods.reduce((a,x)=>a+x.c,0),pro=s.foods.reduce((a,x)=>a+x.p,0);
+ return `<div class="card hero"><div class="rank">🍽️ FUEL ARC</div><h2>Fuel your training.</h2><p class="muted">Track meals and nutrition estimates without turning food into a score you have to "win."</p></div>
+ <div class="card"><h2 class="sectiontitle">📸 AI FOOD SCANNER</h2><label class="photo">📷<br><b>Take or choose a food photo</b><div class="tiny">Your iPhone camera can open here.</div><input type="file" accept="image/*" capture="environment" onchange="photo(this)"></label><div id="scan"></div></div>
+ <div class="card"><h2 class="sectiontitle">✏️ MANUAL FOOD LOG</h2><input id="fn" placeholder="Food"><input id="fc" type="number" placeholder="Calories (optional)"><input id="fp" type="number" placeholder="Protein g (optional)"><input id="fa" type="number" placeholder="Carbs g (optional)"><input id="ff" type="number" placeholder="Fat g (optional)"><button class="primary" onclick="addFood()">SAVE FOOD +25 XP</button></div>
+ <div class="card"><h2 class="sectiontitle">🍽️ 3 MEALS + 2 SNACKS</h2>${meals.map(mission).join("")}</div>
+ <div class="grid"><div class="stat">🔥<div class="num">${cal}</div><span class="muted">Logged kcal</span></div><div class="stat">💪<div class="num">${pro}g</div><span class="muted">Logged protein</span></div></div>
+ <div class="card"><h2 class="sectiontitle">💧 WATER</h2><div style="font-size:29px">${"💧".repeat(Math.min(s.water,s.goal))}${"▫️".repeat(Math.max(0,s.goal-s.water))}</div><p class="muted">${s.water}/${s.goal} drinks</p><button class="primary" onclick="water()">+1 WATER</button></div>
+ <div class="card"><h2 class="sectiontitle">📋 FOOD HISTORY</h2>${s.foods.length?s.foods.slice().reverse().map(x=>`<div class="quest"><b>${x.n}</b><div class="tiny">${x.date} • ${x.c} kcal • ${x.p}g protein</div></div>`).join(""):"<p class='muted'>No food logged yet.</p>"}</div>`;
+}
+function water(){s.water++;if(s.water>=s.goal&&!s.done.water){s.done.water=1;s.xp+=100;toast("+100 XP • Water goal!")}else toast("+1 water");save();render()}
+function stats(){
+ let avg=Math.round(Object.values(s.skills).reduce((a,b)=>a+b,0)/Object.keys(s.skills).length),cal=s.foods.reduce((a,x)=>a+x.c,0),pro=s.foods.reduce((a,x)=>a+x.p,0);
+ return `<div class="card hero"><div class="rank">🏆 PLAYER PROFILE • V4.0</div><div class="row"><div><div class="level">${level()}</div><div class="muted">${s.xp.toLocaleString()} TOTAL XP</div></div><div style="font-size:54px">⚽</div></div></div>
+ <div class="grid"><div class="stat">⚽<div class="num">${s.soccer}</div><span class="muted">Soccer sessions</span></div><div class="stat">🏋️<div class="num">${s.workouts}</div><span class="muted">Workouts</span></div><div class="stat">🎯<div class="num">${avg}</div><span class="muted">Avg skill LV</span></div><div class="stat">🔥<div class="num">${cal}</div><span class="muted">Logged kcal</span></div></div>
+ <div class="card"><h2 class="sectiontitle">📈 SKILL PROFILE</h2>${Object.entries(s.skills).map(x=>`<div class="skill"><div class="row"><b>${x[0].toUpperCase()}</b><span class="pill">LV ${x[1]}</span></div><div class="skillbar"><div class="skillfill" style="width:${Math.min(100,x[1]*10)}%"></div></div></div>`).join("")}</div>
+ <div class="card"><h2 class="sectiontitle">🎖️ ACHIEVEMENTS</h2><div class="grid"><div class="badge">⚽ First Session</div><div class="badge">🥇 First Touch</div><div class="badge">🏋️ Training Arc</div><div class="badge">👑 Rising Star</div></div></div>`;
+}
+function render(){let p=localStorage.getItem("page")||"home";["home","train","fuel","stats"].forEach(x=>document.getElementById("n-"+x).classList.remove("active"));document.getElementById("n-"+p).classList.add("active");document.getElementById("app").innerHTML={home,train,fuel,stats}[p]()}
+render();
+</script></body></html>
