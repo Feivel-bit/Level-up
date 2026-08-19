@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Level Up</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f8fafc;background:#090d16}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#0b1220,#090d16 55%);min-height:100vh}
+header{padding:22px 18px 8px;position:sticky;top:0;background:#090d16eF;backdrop-filter:blur(12px);z-index:3}
+h1{margin:0;font-size:30px}.sub{color:#94a3b8;margin-top:3px}
+main{padding:12px 16px 90px;max-width:720px;margin:auto}.card{background:#111827;border:1px solid #243044;border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 10px 30px #0003}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}.level{font-size:38px;font-weight:800}.xp{color:#a7f3d0;font-weight:700}
+.bar{height:12px;background:#263244;border-radius:20px;overflow:hidden;margin-top:12px}.fill{height:100%;background:#34d399;border-radius:20px;transition:.25s}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#0d1420;border-radius:16px;padding:14px}.big{font-size:25px;font-weight:800}
+button{border:0;border-radius:14px;padding:12px 14px;background:#1f2937;color:white;font-weight:700;font-size:15px}button.primary{background:#10b981;color:#052e25}button.done{background:#064e3b;color:#a7f3d0}button:active{transform:scale(.98)}
+.quest{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #263244}.quest:last-child{border:0}
+.qname{font-weight:700}.reward{font-size:12px;color:#94a3b8;margin-top:3px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#0b111deF;backdrop-filter:blur(14px);border-top:1px solid #243044;display:flex;justify-content:center;z-index:5}
+nav button{background:transparent;border-radius:0;flex:1;max-width:140px;color:#94a3b8;padding:13px 5px 16px}nav button.active{color:#6ee7b7}
+h2{margin:5px 0 2px;font-size:21px}.muted{color:#94a3b8}.water{font-size:45px;letter-spacing:3px;line-height:1.2}
+input{width:100%;padding:12px;border-radius:12px;border:1px solid #334155;background:#0b1220;color:#fff;font-size:16px;margin:7px 0}
+.hidden{display:none}.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#10b981;color:#052e25;padding:12px 18px;border-radius:999px;font-weight:800;z-index:10;box-shadow:0 10px 30px #0007}
+</style>
+</head>
+<body>
+<header><h1>⚡ LEVEL UP</h1><div class="sub">Your daily grind • Level <span id="headLevel">1</span></div></header>
+<main id="app"></main>
+<nav>
+<button onclick="show('home')" id="n-home">🏠<br>Home</button>
+<button onclick="show('training')" id="n-training">⚽<br>Training</button>
+<button onclick="show('fuel')" id="n-fuel">🍽️<br>Fuel</button>
+<button onclick="show('water')" id="n-water">💧<br>Water</button>
+<button onclick="show('stats')" id="n-stats">🏆<br>Stats</button>
+</nav>
+<div id="toast" class="toast hidden"></div>
+<script>
+const key='levelup-v1';
+let s=JSON.parse(localStorage.getItem(key)||'null')||{xp:0,streak:0,water:0,waterGoal:8,quests:{},stats:{soccer:0,workouts:0,days:0}};
+const quests=[
+['morning','🌅 Morning water',50],['breakfast','🍳 Breakfast',100],['lunch','🥪 Lunch',100],
+['dinner','🍝 Dinner',100],['snack1','🍎 Snack #1',50],['snack2','🍌 Snack #2',50],
+['hydration','💧 Water goal',100],['shower','🚿 Cold shower',75],['soccer','⚽ Soccer practice',200],['workout','🏋️ Workout',200]
+];
+function save(){localStorage.setItem(key,JSON.stringify(s))}
+function level(){return Math.floor(s.xp/500)+1}
+function xpIn(){return s.xp%500}
+function toast(t){let e=document.getElementById('toast');e.textContent=t;e.classList.remove('hidden');setTimeout(()=>e.classList.add('hidden'),1400)}
+function complete(id,xp){
+ if(s.quests[id])return;
+ s.quests[id]=true;s.xp+=xp;
+ if(id==='soccer')s.stats.soccer++;if(id==='workout')s.stats.workouts++;
+ save();toast('+'+xp+' XP 🎉');render();
+}
+function resetDay(){s.quests={};s.water=0;save();render()}
+function home(){
+let pct=xpIn()/5, done=quests.filter(q=>s.quests[q[0]]).length;
+return `<div class="card"><div class="row"><div><div class="muted">CURRENT LEVEL</div><div class="level">${level()}</div></div><div class="xp">${xpIn()} / 500 XP</div></div><div class="bar"><div class="fill" style="width:${pct}%"></div></div></div>
+<div class="grid"><div class="stat">🔥<div class="big">${s.streak}</div><span class="muted">Day streak</span></div><div class="stat">🎯<div class="big">${done}/${quests.length}</div><span class="muted">Quests</span></div></div>
+<div class="card"><h2>Today's Quests</h2>${quests.map(q=>`<div class="quest"><div><div class="qname">${q[1]}</div><div class="reward">+${q[2]} XP</div></div><button class="${s.quests[q[0]]?'done':''}" onclick="complete('${q[0]}',${q[2]})">${s.quests[q[0]]?'✓ Done':'Complete'}</button></div>`).join('')}</div>
+<div class="card"><div class="row"><div><b>New day?</b><div class="muted">Reset today's checklist.</div></div><button onclick="resetDay()">Reset</button></div></div>`;
+}
+function training(){return `<div class="card"><h2>⚽ Soccer Training</h2><p class="muted">Pick drills you actually want to do today.</p>
+${[['Ball control','10 min'],['Dribbling','15 min'],['Weak foot','10 min'],['Passing','15 min'],['Speed & agility','10 min']].map(x=>`<div class="quest"><div><b>${x[0]}</b><div class="reward">${x[1]}</div></div><button onclick="toast('Drill completed! +25 XP');s.xp+=25;save();render()">+25 XP</button></div>`).join('')}</div>
+<div class="card"><h2>🏋️ Workout</h2><p class="muted">Record what you trained.</p><input id="workoutText" placeholder="Example: legs, push-ups, core..."><button class="primary" onclick="complete('workout',200)">Complete workout +200 XP</button></div>`}
+function fuel(){return `<div class="card"><h2>🍽️ Fuel</h2><p class="muted">Keep track of regular meals and snacks. This version doesn't set a restrictive calorie target.</p>
+${quests.filter(q=>['breakfast','lunch','dinner','snack1','snack2'].includes(q[0])).map(q=>`<div class="quest"><div><b>${q[1]}</b><div class="reward">+${q[2]} XP</div></div><button class="${s.quests[q[0]]?'done':''}" onclick="complete('${q[0]}',${q[2]})">${s.quests[q[0]]?'✓':'Log'}</button></div>`).join('')}
+<div class="card"><h2>Calories (optional)</h2><input id="cal" type="number" placeholder="Enter calories if you want to track them"><div class="muted">This is just a log — it won't tell you to restrict food.</div></div></div>`}
+function water(){let full=Math.min(s.water,s.waterGoal);return `<div class="card"><h2>💧 Hydration</h2><div class="water">${'💧'.repeat(full)}${'▫️'.repeat(Math.max(0,s.waterGoal-full))}</div><h2>${s.water} / ${s.waterGoal} drinks</h2><p class="muted">Tap +1 whenever you drink water.</p><button class="primary" onclick="s.water++;if(s.water>=s.waterGoal)complete('hydration',100);save();render()">+1 Water</button> <button onclick="s.water=Math.max(0,s.water-1);save();render()">−1</button></div>
+<div class="card"><h2>🌅 Morning water</h2><p class="muted">Make it part of your morning routine.</p><button class="${s.quests.morning?'done':'primary'}" onclick="complete('morning',50)">${s.quests.morning?'✓ Done':'Complete +50 XP'}</button></div>`}
+function stats(){return `<div class="card"><h2>🏆 Player Stats</h2><div class="grid"><div class="stat">⭐<div class="big">${s.xp}</div><span class="muted">Total XP</span></div><div class="stat">⚡<div class="big">${level()}</div><span class="muted">Level</span></div><div class="stat">⚽<div class="big">${s.stats.soccer}</div><span class="muted">Soccer sessions</span></div><div class="stat">🏋️<div class="big">${s.stats.workouts}</div><span class="muted">Workouts</span></div></div></div>
+<div class="card"><h2>🎖️ Badges</h2><p>${s.stats.soccer>=10?'⚽ First Touch — unlocked':'🔒 ⚽ First Touch — 10 soccer sessions'}</p><p>${s.stats.workouts>=25?'🏋️ Training Arc — unlocked':'🔒 🏋️ Training Arc — 25 workouts'}</p><p>${s.streak>=7?'🔥 Consistency — unlocked':'🔒 🔥 Consistency — 7 day streak'}</p></div>`}
+function show(p){localStorage.setItem('page',p);render()}
+function render(){let p=localStorage.getItem('page')||'home';document.getElementById('headLevel').textContent=level();document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));document.getElementById('n-'+p).classList.add('active');document.getElementById('app').innerHTML={home,training,fuel,water,stats}[p]()}
+render();
+</script>
+</body>
+</html>
